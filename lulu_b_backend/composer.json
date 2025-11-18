@@ -1,0 +1,13 @@
+{
+    "name": "lulu-b/portfolio-backend",
+    "description": "Backend API for Lulu B portfolio website",
+    "type": "project",
+    "require": {
+        "phpmailer/phpmailer": "^6.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+}
