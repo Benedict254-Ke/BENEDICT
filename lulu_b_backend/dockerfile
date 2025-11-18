@@ -23,9 +23,8 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . .
 
-# Copy .env file
-COPY .env .env 2>/dev/null || true
-RUN chmod 644 .env 2>/dev/null || true
+# Copy .env file if it exists
+RUN if [ -f .env ]; then chmod 644 .env; fi
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader 2>/dev/null || true
