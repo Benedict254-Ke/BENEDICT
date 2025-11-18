@@ -1,7 +1,7 @@
 # Use PHP 8.1 with Nginx
 FROM php:8.1-fpm
 
-# Install Nginx
+# Install Nginx and dependencies
 RUN apt-get update && apt-get install -y \
     nginx \
     git \
@@ -31,18 +31,27 @@ RUN mkdir -p storage bootstrap/cache logs && \
     chmod -R 755 storage bootstrap/cache logs && \
     chown -R www-data:www-data /var/www/html
 
-# Configure Nginx
-RUN rm /etc/nginx/sites-enabled/default
+# Remove default nginx config
+RUN rm -f /etc/nginx/sites-enabled/default
+
+# Copy nginx config
 COPY nginx.conf /etc/nginx/sites-enabled/default
 
-# Configure Supervisor to manage both Nginx and PHP-FPM
+# Validate nginx configuration
+RUN nginx -t
+
+# Copy supervisor configuration
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Create supervisor log directory
 RUN mkdir -p /var/log/supervisor
 
-# Expose port 3000
+# Copy entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Expose port 8080
 EXPOSE 8080
 
-# Start Supervisor (which manages both Nginx and PHP-FPM)
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Start services via entrypoint
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
