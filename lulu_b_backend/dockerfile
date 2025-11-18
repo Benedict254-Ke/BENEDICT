@@ -1,14 +1,16 @@
-# Use PHP 8.1 FPM
+# Use PHP 8.1 with Nginx
 FROM php:8.1-fpm
 
-# Install system dependencies and PHP extensions
+# Install Nginx
 RUN apt-get update && apt-get install -y \
+    nginx \
     git \
     unzip \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
     default-mysql-client \
+    supervisor \
     && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -26,16 +28,21 @@ RUN composer install --no-dev --optimize-autoloader
 
 # Create necessary directories with proper permissions
 RUN mkdir -p storage bootstrap/cache logs && \
-    chmod -R 755 storage bootstrap/cache logs
+    chmod -R 755 storage bootstrap/cache logs && \
+    chown -R www-data:www-data /var/www/html
 
-# No custom config needed - using defaults
+# Configure Nginx
+RUN rm /etc/nginx/sites-enabled/default
+COPY nginx.conf /etc/nginx/sites-enabled/default
 
-# Expose port 9000
-EXPOSE 9000
+# Configure Supervisor to manage both Nginx and PHP-FPM
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD php -r "exit(0);"
+# Create supervisor log directory
+RUN mkdir -p /var/log/supervisor
 
-# Start PHP-FPM
-CMD ["php-fpm"]
+# Expose port 3000
+EXPOSE 3000
+
+# Start Supervisor (which manages both Nginx and PHP-FPM)
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
