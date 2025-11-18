@@ -24,14 +24,11 @@ WORKDIR /var/www/html
 COPY . .
 
 # Copy .env file
-COPY .env .env
-RUN chmod 644 .env
+COPY .env .env 2>/dev/null || true
+RUN chmod 644 .env 2>/dev/null || true
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
-
-# Generate app key
-RUN php artisan key:generate --force 2>/dev/null || true
+RUN composer install --no-dev --optimize-autoloader 2>/dev/null || true
 
 # Create necessary directories with proper permissions
 RUN mkdir -p storage bootstrap/cache logs && \
@@ -48,15 +45,12 @@ COPY nginx.conf /etc/nginx/sites-enabled/default
 RUN nginx -t
 
 # Copy startup script
-COPY start.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/start.sh
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
 # Expose port 8080
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
-
-# Start application
-CMD ["/usr/local/bin/start.sh"]
+# Use bash as entrypoint to ensure script runs
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["/start.sh"]

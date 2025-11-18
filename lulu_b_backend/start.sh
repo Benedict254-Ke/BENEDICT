@@ -1,17 +1,12 @@
 #!/bin/bash
 set -e
 
-echo "=== Starting Laravel Application ==="
+echo "=== Starting Application ==="
+echo "Starting PHP-FPM in background..."
+/usr/local/sbin/php-fpm -D
 
-echo "Setting up Laravel cache..."
-php artisan config:cache
-php artisan cache:clear
-php artisan view:clear
-
-echo "Starting PHP-FPM..."
-php-fpm -D
-
+echo "Waiting for PHP-FPM to be ready..."
 sleep 2
 
 echo "Starting Nginx..."
-nginx -g "daemon off;"
+/usr/sbin/nginx -g "daemon off;"
