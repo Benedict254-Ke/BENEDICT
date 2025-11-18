@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: lulu_b_backend
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: APP_ENV
+        value: production
