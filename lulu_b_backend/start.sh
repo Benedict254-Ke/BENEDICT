@@ -1,12 +1,13 @@
 #!/bin/bash
 set -e
 
-echo "=== Starting Application ==="
-echo "Starting PHP-FPM in background..."
+echo "[$(date)] === Starting Application ===" > /proc/1/fd/1
+
+echo "[$(date)] Starting PHP-FPM..." > /proc/1/fd/1
 /usr/local/sbin/php-fpm -D
 
-echo "Waiting for PHP-FPM to be ready..."
-sleep 2
+echo "[$(date)] Sleeping 3 seconds..." > /proc/1/fd/1
+sleep 3
 
-echo "Starting Nginx..."
-/usr/sbin/nginx -g "daemon off;"
+echo "[$(date)] Starting Nginx..." > /proc/1/fd/1
+exec /usr/sbin/nginx -g "daemon off;"

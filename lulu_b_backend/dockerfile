@@ -50,6 +50,5 @@ RUN chmod +x /start.sh
 # Expose port 8080
 EXPOSE 8080
 
-# Use bash as entrypoint to ensure script runs
-ENTRYPOINT ["/bin/bash", "-c"]
-CMD ["/start.sh"]
+# Set the startup script as entrypoint
+ENTRYPOINT ["/start.sh"]
