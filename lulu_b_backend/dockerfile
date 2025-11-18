@@ -6,11 +6,11 @@ RUN apt-get update && apt-get install -y \
     nginx \
     git \
     unzip \
+    curl \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
     default-mysql-client \
-    supervisor \
     && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -23,8 +23,15 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . .
 
+# Copy .env file
+COPY .env .env
+RUN chmod 644 .env
+
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
+
+# Generate app key
+RUN php artisan key:generate --force 2>/dev/null || true
 
 # Create necessary directories with proper permissions
 RUN mkdir -p storage bootstrap/cache logs && \
@@ -32,7 +39,7 @@ RUN mkdir -p storage bootstrap/cache logs && \
     chown -R www-data:www-data /var/www/html
 
 # Remove default nginx config
-RUN rm -f /etc/nginx/sites-enabled/default
+RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
 
 # Copy nginx config
 COPY nginx.conf /etc/nginx/sites-enabled/default
@@ -40,18 +47,16 @@ COPY nginx.conf /etc/nginx/sites-enabled/default
 # Validate nginx configuration
 RUN nginx -t
 
-# Copy supervisor configuration
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Create supervisor log directory
-RUN mkdir -p /var/log/supervisor
-
-# Copy entrypoint script
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Copy startup script
+COPY start.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/start.sh
 
 # Expose port 8080
 EXPOSE 8080
 
-# Start services via entrypoint
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Start application
+CMD ["/usr/local/bin/start.sh"]
