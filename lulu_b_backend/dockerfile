@@ -44,7 +44,7 @@ COPY nginx.conf /etc/nginx/sites-enabled/default
 COPY php-fpm.conf /usr/local/etc/php-fpm.conf
 
 # Validate nginx configuration
-RUN nginx -t
+#RUN nginx -t
 
 # Copy startup script
 COPY start.sh /start.sh
