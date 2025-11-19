@@ -40,6 +40,9 @@ RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
 # Copy nginx config
 COPY nginx.conf /etc/nginx/sites-enabled/default
 
+# Copy PHP-FPM config (VERY IMPORTANT)
+COPY php-fpm.conf /usr/local/etc/php-fpm.conf
+
 # Validate nginx configuration
 RUN nginx -t
 
