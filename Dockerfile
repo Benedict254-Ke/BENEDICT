@@ -1,0 +1,47 @@
+FROM php:8.2-fpm
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    nginx \
+    supervisor \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    && apt-get clean
+
+# Install PHP extensions
+RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copy configuration files from lulu_b_backend
+COPY lulu_b_backend/nginx.conf /etc/nginx/sites-available/default
+COPY lulu_b_backend/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copy PHP application code from lulu_b_backend
+COPY lulu_b_backend /var/www/html
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Install dependencies if composer.json exists
+RUN if [ -f "composer.json" ]; then composer install --no-dev --optimize-autoloader; fi
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
+# Create storage and bootstrap/cache directories if they don't exist
+RUN mkdir -p storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+# Expose port
+EXPOSE 80
+
+# Start supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
