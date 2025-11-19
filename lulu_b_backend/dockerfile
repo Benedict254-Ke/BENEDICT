@@ -53,5 +53,6 @@ RUN mkdir -p /var/log/supervisor
 # Expose port 8080
 EXPOSE 8080
 
-# Start supervisor as PID 1
+# Override the FPM entrypoint and use supervisor as PID 1
+ENTRYPOINT []
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
