@@ -323,6 +323,7 @@
 <script>
 
 // ✅ NEWSLETTER FORM
+// ✅ NEWSLETTER FORM - Updated URL
 const newsletterForm = document.getElementById("newsletterForm");
 
 if (newsletterForm) {
@@ -334,7 +335,8 @@ if (newsletterForm) {
         let formData = new FormData();
         formData.append("email", email);
 
-        fetch("http://localhost/Benedict_web/lulu_b_backend/api/add_newsletter.php", {
+        // ✅ Changed to your Render URL
+        fetch("https://benedict-2-54ex.onrender.com/api/add_newsletter.php", {
             method: "POST",
             body: formData
         })
@@ -342,12 +344,15 @@ if (newsletterForm) {
         .then(data => {
             alert(data);
             document.getElementById("newsletterEmail").value = "";
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to subscribe. Please try again.');
         });
     });
 }
 
-
-// ✅ CONTACT FORM
+// ✅ CONTACT FORM - Updated URL
 const contactForm = document.getElementById("contactForm");
 
 if (contactForm) {
@@ -356,13 +361,18 @@ if (contactForm) {
 
         let formData = new FormData(this);
 
-        fetch("http://localhost/Benedict_web/lulu_b_backend/api/send_message.php", {
+        // ✅ Changed to your Render URL
+        fetch("https://benedict-2-54ex.onrender.com/api/send_message.php", {
             method: "POST",
             body: formData
         })
         .then(res => res.text())
         .then(data => {
             alert(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to send message. Please try again.');
         });
     });
 }
