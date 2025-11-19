@@ -37,10 +37,10 @@ RUN mkdir -p storage bootstrap/cache logs && \
 # Remove default nginx config
 RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
 
-# Copy nginx config
+# Copy nginx config (must use listen ${PORT})
 COPY nginx.conf /etc/nginx/sites-enabled/default
 
-# Copy PHP-FPM config (VERY IMPORTANT)
+# Copy PHP-FPM config
 COPY php-fpm.conf /usr/local/etc/php-fpm.conf
 
 # Validate nginx configuration
@@ -49,9 +49,6 @@ RUN nginx -t
 # Copy startup script
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
-
-# Expose port 8080
-EXPOSE 8080
 
 # Set the startup script as entrypoint
 ENTRYPOINT ["/start.sh"]
