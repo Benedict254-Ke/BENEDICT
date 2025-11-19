@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "benedict-portfolio",
   "builds": [
     {
       "src": "*.html",
@@ -10,7 +9,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/Website.html"
+      "dest": "/index.html"
     }
   ]
 }
