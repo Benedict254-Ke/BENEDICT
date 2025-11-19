@@ -21,8 +21,8 @@ COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy project files
-COPY . .
+# Copy Laravel backend app from subfolder
+COPY lulu_b_backend/ .
 
 # Copy .env file if it exists
 RUN if [ -f .env ]; then chmod 644 .env; fi
