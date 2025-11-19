@@ -4,9 +4,25 @@
     {
       "src": "*.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "*.css",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "img/*",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
+    {
+      "src": "/style.css",
+      "dest": "/style.css"
+    },
+    {
+      "src": "/img/(.*)",
+      "dest": "/img/$1"
+    },
     {
       "src": "/(.*)",
       "dest": "/index.html"
