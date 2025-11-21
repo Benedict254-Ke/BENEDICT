@@ -1066,23 +1066,21 @@
             });
         }
 
-       // ✅ CONTACT FORM
+      // ✅ CONTACT FORM - DEBUG VERSION
 const contactForm = document.getElementById("contactForm");
 
 if (contactForm) {
     contactForm.addEventListener("submit", function(e){
         e.preventDefault();
 
-        // Get form data
-        let formData = new FormData(this);
-        
-        // Convert FormData to JSON object
         const jsonData = {
-            name: formData.get('name'),
-            email: formData.get('email'),
-            subject: formData.get('subject'),
-            message: formData.get('message')
+            name: this.querySelector('[name="name"]').value,
+            email: this.querySelector('[name="email"]').value,
+            subject: this.querySelector('[name="subject"]').value,
+            message: this.querySelector('[name="message"]').value
         };
+
+        console.log('Sending data:', jsonData);
 
         fetch("https://benedict-2-54ex.onrender.com/api/send_message.php", {
             method: "POST",
@@ -1092,22 +1090,30 @@ if (contactForm) {
             body: JSON.stringify(jsonData)
         })
         .then(res => {
-            if (!res.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return res.json();
+            console.log('Response status:', res.status);
+            console.log('Response headers:', res.headers);
+            return res.text(); // Get raw response first
         })
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                contactForm.reset(); // Clear the form
-            } else {
-                alert('Error: ' + data.message);
+        .then(rawData => {
+            console.log('Raw response:', rawData);
+            
+            try {
+                const data = JSON.parse(rawData);
+                if (data.success) {
+                    alert(data.message);
+                    this.reset();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (e) {
+                console.error('JSON parse error:', e);
+                console.error('Raw data that failed:', rawData);
+                alert('Server error: The response was not valid JSON. Check console for details.');
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('Failed to send message. Please try again.');
+            console.error('Fetch error:', error);
+            alert('Network error: ' + error.message);
         });
     });
 }
