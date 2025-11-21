@@ -8,9 +8,12 @@ try {
     $db = $database->getConnection();
     $messagesCollection = $db->getCollection('messages');
     
-    $messages = $messagesCollection->find([], [
+    $cursor = $messagesCollection->find([], [
         'sort' => ['timestamp' => -1]
-    ])->toArray();
+    ]);
+    
+    // convert the cursor (Traversable) to an array
+    $messages = iterator_to_array($cursor, false);
     
     echo json_encode($messages);
     

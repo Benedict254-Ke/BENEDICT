@@ -1,4 +1,6 @@
 <?php
+use MongoDB\BSON\UTCDateTime;
+
 class Contact {
     private $conn;
     private $collection;

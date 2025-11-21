@@ -32,8 +32,8 @@ COPY lulu_b_backend /var/www/html
 # Set working directory
 WORKDIR /var/www/html
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+# ✅ FIX: Use composer update instead of install to sync lock file
+RUN composer update --no-dev --optimize-autoloader
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
