@@ -1038,41 +1038,44 @@
     </footer>
 
     <script>
-        // ✅ NEWSLETTER FORM
-        const newsletterForm = document.getElementById("newsletterForm");
+       // ✅ NEWSLETTER FORM - Simple version
+const newsletterForm = document.getElementById("newsletterForm");
 
-        if (newsletterForm) {
-            newsletterForm.addEventListener("submit", function(e) {
-                e.preventDefault();
+if (newsletterForm) {
+    newsletterForm.addEventListener("submit", function(e) {
+        e.preventDefault();
 
-                let email = document.getElementById("newsletterEmail").value;
+        const email = document.getElementById("newsletterEmail").value;
 
-                let formData = new FormData();
-                formData.append("email", email);
+        fetch("https://benedict-2-54ex.onrender.com/api/simple_newsletter.php", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            if (data.success) {
+                document.getElementById("newsletterEmail").value = "";
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to subscribe. Please try again.');
+        });
+    });
+}
 
-                fetch("https://benedict-2-54ex.onrender.com/api/add_newsletter.php", {
-                    method: "POST",
-                    body: formData
-                })
-                .then(res => res.text())
-                .then(data => {
-                    alert(data);
-                    document.getElementById("newsletterEmail").value = "";
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Failed to subscribe. Please try again.');
-                });
-            });
-        }
-
-      // ✅ CONTACT FORM - DEBUG VERSION
+      // ✅ CONTACT FORM - Simple version (No MongoDB required)
 const contactForm = document.getElementById("contactForm");
 
 if (contactForm) {
     contactForm.addEventListener("submit", function(e){
         e.preventDefault();
 
+        // Get form data
         const jsonData = {
             name: this.querySelector('[name="name"]').value,
             email: this.querySelector('[name="email"]').value,
@@ -1082,7 +1085,13 @@ if (contactForm) {
 
         console.log('Sending data:', jsonData);
 
-        fetch("https://benedict-2-54ex.onrender.com/api/send_message.php", {
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Sending...';
+        submitBtn.disabled = true;
+
+        fetch("https://benedict-2-54ex.onrender.com/api/simple_contact.php", {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -1090,30 +1099,27 @@ if (contactForm) {
             body: JSON.stringify(jsonData)
         })
         .then(res => {
-            console.log('Response status:', res.status);
-            console.log('Response headers:', res.headers);
-            return res.text(); // Get raw response first
+            if (!res.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return res.json();
         })
-        .then(rawData => {
-            console.log('Raw response:', rawData);
-            
-            try {
-                const data = JSON.parse(rawData);
-                if (data.success) {
-                    alert(data.message);
-                    this.reset();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            } catch (e) {
-                console.error('JSON parse error:', e);
-                console.error('Raw data that failed:', rawData);
-                alert('Server error: The response was not valid JSON. Check console for details.');
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                contactForm.reset(); // Clear the form
+            } else {
+                alert('Error: ' + data.message);
             }
         })
         .catch(error => {
-            console.error('Fetch error:', error);
-            alert('Network error: ' + error.message);
+            console.error('Error:', error);
+            alert('Failed to send message. Please try again.');
+        })
+        .finally(() => {
+            // Reset button state
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
         });
     });
 }
