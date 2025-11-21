@@ -1,7 +1,11 @@
 <?php
+require_once '../vendor/autoload.php';
+include_once '../config/db.php';
+include_once '../objects/contact.php';
+
 // ✅ CORS Headers - Allow your Vercel frontend and local development
-header("Access-Control-Allow-Origin: https://your-vercel-app.vercel.app"); // Replace with your actual Vercel URL
-header("Access-Control-Allow-Origin: http://localhost:3000"); // For local development
+header("Access-Control-Allow-Origin: https://benedict-personal-portifolio.vercel.app");
+header("Access-Control-Allow-Origin: http://localhost:3000");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Access-Control-Allow-Credentials: true");
@@ -14,8 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 // ✅ Set content type to JSON for consistent responses
 header('Content-Type: application/json');
-
-include "../config/db.php";
 
 // ✅ Initialize response array
 $response = ['success' => false, 'message' => ''];
@@ -31,10 +33,10 @@ try {
         }
 
         // ✅ Get and sanitize data
-        $name = $conn->real_escape_string(trim($_POST['name']));
-        $email = $conn->real_escape_string(trim($_POST['email']));
-        $subject = $conn->real_escape_string(trim($_POST['subject']));
-        $message = $conn->real_escape_string(trim($_POST['message']));
+        $name = trim($_POST['name']);
+        $email = trim($_POST['email']);
+        $subject = trim($_POST['subject']);
+        $message = trim($_POST['message']);
 
         // ✅ Validate email format
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -43,28 +45,33 @@ try {
             exit;
         }
 
-        // ✅ Insert into database
-        $sql = "INSERT INTO messages (name, email, subject, message, created_at)
-                VALUES ('$name', '$email', '$subject', '$message', NOW())";
+        // ✅ Initialize MongoDB connection
+        $database = new Database();
+        $db = $database->getConnection();
+        $contact = new Contact($db);
 
-        if ($conn->query($sql)) {
+        // ✅ Set contact data
+        $contact->name = htmlspecialchars($name);
+        $contact->email = htmlspecialchars($email);
+        $contact->subject = htmlspecialchars($subject);
+        $contact->message = htmlspecialchars($message);
+
+        // ✅ Insert into MongoDB
+        if ($contact->create()) {
             $response['success'] = true;
             $response['message'] = "Message sent successfully! ✅ I'll get back to you soon.";
         } else {
             $response['message'] = "Failed to send message. Please try again. ❌";
-            // Optional: Log the error for debugging
-            // error_log("Database error: " . $conn->error);
         }
+
     } else {
         $response['message'] = "Invalid request method.";
     }
 
 } catch (Exception $e) {
     $response['message'] = "Server error: " . $e->getMessage();
+    error_log("Contact form error: " . $e->getMessage());
 }
-
-// ✅ Close database connection
-$conn->close();
 
 // ✅ Return JSON response
 echo json_encode($response);
