@@ -16,8 +16,11 @@ RUN apt-get update && apt-get install -y \
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
 
-# ✅ Install MongoDB PHP extension
+# ✅ Install MongoDB PHP extension PROPERLY
 RUN pecl install mongodb && docker-php-ext-enable mongodb
+
+# ✅ Create php.ini to ensure extension is loaded
+RUN echo "extension=mongodb.so" >> /usr/local/etc/php/conf.d/mongodb.ini
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -32,8 +35,11 @@ COPY lulu_b_backend /var/www/html
 # Set working directory
 WORKDIR /var/www/html
 
-# ✅ FIX: Simple composer install (no MongoDB package needed)
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
+
+# ✅ Verify MongoDB extension is loaded
+RUN php -m | grep mongodb
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
