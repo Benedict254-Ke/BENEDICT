@@ -32,13 +32,8 @@ COPY lulu_b_backend /var/www/html
 # Set working directory
 WORKDIR /var/www/html
 
-# ✅ FIX: Show PHP and Composer info for debugging
-RUN php --version && composer --version
-
-# ✅ FIX: Remove problematic lock file and install fresh
-RUN rm -f composer.lock
-RUN composer require mongodb/mongodb --no-dev --optimize-autoloader
-RUN composer require phpmailer/phpmailer --no-dev --optimize-autoloader
+# ✅ FIX: Simple composer install (no MongoDB package needed)
+RUN composer install --no-dev --optimize-autoloader
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
