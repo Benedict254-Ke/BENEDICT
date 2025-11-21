@@ -1,23 +1,36 @@
 <?php
 session_start();
-include "../config/db.php";
+require_once '../vendor/autoload.php';
+include_once '../config/db.php';
+include_once '../objects/user.php';
 
-$username = $_POST['username'];
-$password = $_POST['password'];
+header('Content-Type: text/plain');
 
-$sql = "SELECT * FROM admin_users WHERE username = '$username'";
-$res = $conn->query($sql);
+try {
+    $database = new Database();
+    $db = $database->getConnection();
+    $user = new User($db);
 
-if ($res->num_rows == 1) {
-    $row = $res->fetch_assoc();
+    $username = $_POST['username'] ?? '';
+    $password = $_POST['password'] ?? '';
 
-    if (hash('sha256', $password) === $row['password']) {
-        $_SESSION['admin'] = $row['id'];
+    if (empty($username) || empty($password)) {
+        echo "empty_fields";
+        exit;
+    }
+
+    $authenticatedUser = $user->authenticate($username, $password);
+    
+    if ($authenticatedUser) {
+        $_SESSION['admin'] = $authenticatedUser['username'];
+        $_SESSION['admin_id'] = (string)$authenticatedUser['_id'];
         echo "success";
     } else {
-        echo "invalid_password";
+        echo "invalid_credentials";
     }
-} else {
-    echo "invalid_user";
+    
+} catch (Exception $e) {
+    error_log("Login error: " . $e->getMessage());
+    echo "error";
 }
 ?>
