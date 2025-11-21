@@ -1,15 +1,20 @@
 <?php
-header("Content-Type: application/json");
-include "../config/db.php";
+include_once '../config/db.php';
 
-$sql = "SELECT * FROM messages ORDER BY id DESC";
-$result = $conn->query($sql);
+header('Content-Type: application/json');
 
-$messages = [];
-
-while ($row = $result->fetch_assoc()) {
-    $messages[] = $row;
+try {
+    $database = new Database();
+    $db = $database->getConnection();
+    $messagesCollection = $db->getCollection('messages');
+    
+    $messages = $messagesCollection->find([], [
+        'sort' => ['timestamp' => -1]
+    ])->toArray();
+    
+    echo json_encode($messages);
+    
+} catch (Exception $e) {
+    echo json_encode([]);
 }
-
-echo json_encode($messages);
 ?>

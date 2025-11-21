@@ -1,6 +1,5 @@
 <?php
 session_start();
-require_once '../vendor/autoload.php';
 include_once '../config/db.php';
 include_once '../objects/user.php';
 
@@ -23,14 +22,13 @@ try {
     
     if ($authenticatedUser) {
         $_SESSION['admin'] = $authenticatedUser['username'];
-        $_SESSION['admin_id'] = (string)$authenticatedUser['_id'];
+        $_SESSION['admin_id'] = $authenticatedUser['_id'];
         echo "success";
     } else {
         echo "invalid_credentials";
     }
     
 } catch (Exception $e) {
-    error_log("Login error: " . $e->getMessage());
     echo "error";
 }
 ?>

@@ -3,11 +3,10 @@ require_once '../vendor/autoload.php';
 include_once '../config/db.php';
 include_once '../objects/contact.php';
 
-// ✅ Dynamic CORS Handling
+// ✅ CORS Headers
 $allowedOrigins = [
     'https://benedict-personal-portifolio.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:5173' // Add if using Vite
+    'http://localhost:3000'
 ];
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
@@ -15,14 +14,12 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (in_array($origin, $allowedOrigins)) {
     header("Access-Control-Allow-Origin: $origin");
 } else {
-    // Default to your Vercel domain if no origin match
     header("Access-Control-Allow-Origin: https://benedict-personal-portifolio.vercel.app");
 }
 
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
-header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Max-Age: 3600");
+header('Content-Type: application/json; charset=UTF-8');
 
 // ✅ Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
@@ -30,28 +27,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit();
 }
 
-// ✅ Set content type to JSON for consistent responses
-header('Content-Type: application/json');
-
 // ✅ Initialize response array
 $response = ['success' => false, 'message' => ''];
 
 try {
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
-
-        // ✅ Check if content type is JSON
-        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
-        $input = [];
-
-        if (strpos($contentType, 'application/json') !== false) {
-            // Handle JSON input
-            $input = json_decode(file_get_contents('php://input'), true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception('Invalid JSON data');
-            }
-        } else {
-            // Handle form data
-            $input = $_POST;
+        
+        // ✅ Get JSON input
+        $rawInput = file_get_contents('php://input');
+        $input = json_decode($rawInput, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Invalid JSON data');
         }
 
         // ✅ Validate required fields

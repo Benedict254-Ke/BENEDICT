@@ -1,4 +1,5 @@
 <?php
+require_once '../vendor/autoload.php';
 include_once '../config/db.php';
 include_once '../objects/user.php';
 
@@ -8,14 +9,21 @@ try {
     $database = new Database();
     $db = $database->getConnection();
     
-    echo "=== Setting up File-Based Storage ===\n\n";
+    echo "=== Setting up MongoDB Collections ===\n\n";
     
-    // Collections will be created automatically when first used
+    // Collections to verify/create
     $collections = ['users', 'messages', 'newsletter', 'projects'];
     
     foreach ($collections as $collectionName) {
-        $collection = $db->getCollection($collectionName);
-        echo "✅ Ready: $collectionName\n";
+        try {
+            $collection = $db->selectCollection($collectionName);
+            // Test by inserting and removing a document
+            $result = $collection->insertOne(['setup_test' => true, 'timestamp' => new MongoDB\BSON\UTCDateTime()]);
+            $collection->deleteOne(['_id' => $result->getInsertedId()]);
+            echo "✅ Collection ready: $collectionName\n";
+        } catch (Exception $e) {
+            echo "❌ Error with collection $collectionName: " . $e->getMessage() . "\n";
+        }
     }
     
     echo "\n=== Setting up Admin User ===\n";
@@ -23,7 +31,8 @@ try {
     $user = new User($db);
     
     // Check if admin user exists
-    $adminExists = $user->authenticate('admin', 'admin123');
+    $usersCollection = $db->selectCollection('users');
+    $adminExists = $usersCollection->findOne(['username' => 'admin']);
     
     if (!$adminExists) {
         $result = $user->createUser('admin', 'admin123');
@@ -39,12 +48,10 @@ try {
         echo "⚠️  Admin user already exists\n";
     }
     
-    echo "\n=== Setup Complete ===\n";
-    echo "File-based storage is ready!\n";
-    echo "Data will be stored in: /data/*.json files\n";
-    echo "Access admin: https://benedict-2-54ex.onrender.com/admin/login.html\n";
+    echo "\n=== MongoDB Setup Complete ===\n";
+    echo "All data will now be stored in MongoDB Atlas!\n";
     
 } catch (Exception $e) {
-    echo "❌ Error: " . $e->getMessage() . "\n";
+    echo "❌ Setup Error: " . $e->getMessage() . "\n";
 }
 ?>

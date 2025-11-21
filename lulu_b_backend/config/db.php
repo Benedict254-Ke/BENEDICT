@@ -7,16 +7,15 @@ class Database {
     private $database;
     
     public function __construct() {
-        // Use your MongoDB connection string
-        $connectionString = getenv('MONGODB_URI') ?: "mongodb+srv://lulub8929_db_user:UKgnaUXAy6xVB6gS@cluster0.1ktaoog.mongodb.net";
-        $databaseName = "BENEDICT"; // Your database name
+        // Use environment variable or fallback
+        $connectionString = getenv('MONGODB_URI') ?: "mongodb+srv://lulub8929_db_user:UKgnaUXAy6xVB6gS@cluster0.1ktaoog.mongodb.net/BENEDICT?retryWrites=true&w=majority";
+        $databaseName = getenv('DB_NAME') ?: "BENEDICT";
         
         try {
             $this->client = new \MongoDB\Client($connectionString);
             $this->database = $this->client->selectDatabase($databaseName);
-            echo "Connected to MongoDB successfully!";
         } catch (\Exception $e) {
-            throw new \Exception("Database connection failed: " . $e->getMessage());
+            throw new \Exception("MongoDB connection failed: " . $e->getMessage());
         }
     }
     

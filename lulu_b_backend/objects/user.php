@@ -27,10 +27,9 @@ class User {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             $result = $this->collection->insertOne([
                 'username' => $username,
-                'password' => $hashedPassword,
-                'created_at' => new MongoDB\BSON\UTCDateTime()
+                'password' => $hashedPassword
             ]);
-            return $result->getInsertedCount() === 1;
+            return $result;
         } catch (Exception $e) {
             error_log("User creation error: " . $e->getMessage());
             return false;
