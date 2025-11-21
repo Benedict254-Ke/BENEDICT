@@ -1066,30 +1066,51 @@
             });
         }
 
-        // ✅ CONTACT FORM
-        const contactForm = document.getElementById("contactForm");
+       // ✅ CONTACT FORM
+const contactForm = document.getElementById("contactForm");
 
-        if (contactForm) {
-            contactForm.addEventListener("submit", function(e){
-                e.preventDefault();
+if (contactForm) {
+    contactForm.addEventListener("submit", function(e){
+        e.preventDefault();
 
-                let formData = new FormData(this);
+        // Get form data
+        let formData = new FormData(this);
+        
+        // Convert FormData to JSON object
+        const jsonData = {
+            name: formData.get('name'),
+            email: formData.get('email'),
+            subject: formData.get('subject'),
+            message: formData.get('message')
+        };
 
-                fetch("https://benedict-2-54ex.onrender.com/api/send_message.php", {
-                    method: "POST",
-                    body: formData
-                })
-                .then(res => res.text())
-                .then(data => {
-                    alert(data);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Failed to send message. Please try again.');
-                });
-            });
-        }
-
+        fetch("https://benedict-2-54ex.onrender.com/api/send_message.php", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonData)
+        })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                contactForm.reset(); // Clear the form
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to send message. Please try again.');
+        });
+    });
+}
         // ✅ SKILL CIRCLES
         document.addEventListener('DOMContentLoaded', () => {
             const skillCircles = document.querySelectorAll('.skill-circle');

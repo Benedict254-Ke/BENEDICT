@@ -3,12 +3,26 @@ require_once '../vendor/autoload.php';
 include_once '../config/db.php';
 include_once '../objects/contact.php';
 
-// ✅ CORS Headers - Allow your Vercel frontend and local development
-header("Access-Control-Allow-Origin: https://benedict-personal-portifolio.vercel.app");
-header("Access-Control-Allow-Origin: http://localhost:3000");
+// ✅ Dynamic CORS Handling
+$allowedOrigins = [
+    'https://benedict-personal-portifolio.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5173' // Add if using Vite
+];
+
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+if (in_array($origin, $allowedOrigins)) {
+    header("Access-Control-Allow-Origin: $origin");
+} else {
+    // Default to your Vercel domain if no origin match
+    header("Access-Control-Allow-Origin: https://benedict-personal-portifolio.vercel.app");
+}
+
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Max-Age: 3600");
 
 // ✅ Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
@@ -25,18 +39,33 @@ $response = ['success' => false, 'message' => ''];
 try {
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
+        // ✅ Check if content type is JSON
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        $input = [];
+
+        if (strpos($contentType, 'application/json') !== false) {
+            // Handle JSON input
+            $input = json_decode(file_get_contents('php://input'), true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception('Invalid JSON data');
+            }
+        } else {
+            // Handle form data
+            $input = $_POST;
+        }
+
         // ✅ Validate required fields
-        if (empty($_POST['name']) || empty($_POST['email']) || empty($_POST['subject']) || empty($_POST['message'])) {
+        if (empty($input['name']) || empty($input['email']) || empty($input['subject']) || empty($input['message'])) {
             $response['message'] = "All fields are required!";
             echo json_encode($response);
             exit;
         }
 
         // ✅ Get and sanitize data
-        $name = trim($_POST['name']);
-        $email = trim($_POST['email']);
-        $subject = trim($_POST['subject']);
-        $message = trim($_POST['message']);
+        $name = trim($input['name']);
+        $email = trim($input['email']);
+        $subject = trim($input['subject']);
+        $message = trim($input['message']);
 
         // ✅ Validate email format
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
